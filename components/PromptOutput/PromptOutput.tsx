@@ -7,7 +7,10 @@ import { buildPrompt } from "@/lib/ai/promptBuilder";
 import { aspectRatioBucket, getDimensions } from "@/lib/canvas/sizes";
 import { cn } from "@/lib/utils";
 
-const GEMINI_URL = "https://gemini.google.com/app";
+const CHAT_TARGETS = {
+  gemini: { label: "Gemini", url: "https://gemini.google.com/app" },
+  chatgpt: { label: "ChatGPT", url: "https://chatgpt.com" },
+} as const;
 
 export function PromptOutput() {
   const {
@@ -18,7 +21,10 @@ export function PromptOutput() {
     logoCount,
     includeQr,
     includePhotoSpace,
+    targetChat,
+    setTargetChat,
   } = usePosterStore();
+  const target = CHAT_TARGETS[targetChat];
 
   const prompt = useMemo(() => {
     const dim = getDimensions(sizePreset, orientation);
@@ -66,11 +72,29 @@ export function PromptOutput() {
             Generated prompt
           </h2>
           <p className="text-xs text-zinc-500">
-            Paste this into your Gemini chat, then attach any style reference
+            Paste this into {target.label}, then attach any style reference
             images alongside it.
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex rounded-md border border-zinc-800 bg-zinc-900 p-0.5">
+            {(Object.keys(CHAT_TARGETS) as Array<keyof typeof CHAT_TARGETS>).map(
+              (key) => (
+                <button
+                  key={key}
+                  onClick={() => setTargetChat(key)}
+                  className={cn(
+                    "rounded-sm px-2.5 py-1 text-[11px] font-medium transition-colors",
+                    targetChat === key
+                      ? "bg-fuchsia-600 text-white"
+                      : "text-zinc-300 hover:bg-zinc-800",
+                  )}
+                >
+                  {CHAT_TARGETS[key].label}
+                </button>
+              ),
+            )}
+          </div>
           <button onClick={onCopy} className={primaryBtn}>
             {copied ? (
               <>
@@ -85,13 +109,13 @@ export function PromptOutput() {
             )}
           </button>
           <a
-            href={GEMINI_URL}
+            href={target.url}
             target="_blank"
             rel="noreferrer"
             className={secondaryBtn}
           >
             <ExternalLink className="h-4 w-4" />
-            Open Gemini
+            Open {target.label}
           </a>
         </div>
       </div>

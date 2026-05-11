@@ -13,6 +13,8 @@ export type EventDetails = {
   tnc: string;
 };
 
+export type TargetChat = "gemini" | "chatgpt";
+
 type PosterState = {
   details: EventDetails;
   stylePrompt: string;
@@ -21,6 +23,7 @@ type PosterState = {
   logoCount: number;
   includeQr: boolean;
   includePhotoSpace: boolean;
+  targetChat: TargetChat;
 
   setDetails: (patch: Partial<EventDetails>) => void;
   setStylePrompt: (s: string) => void;
@@ -29,6 +32,7 @@ type PosterState = {
   setLogoCount: (n: number) => void;
   setIncludeQr: (b: boolean) => void;
   setIncludePhotoSpace: (b: boolean) => void;
+  setTargetChat: (t: TargetChat) => void;
 };
 
 const DEFAULT_DETAILS: EventDetails = {
@@ -49,6 +53,7 @@ export const usePosterStore = create<PosterState>((set) => ({
   logoCount: 2,
   includeQr: true,
   includePhotoSpace: false,
+  targetChat: "gemini",
 
   setDetails: (patch) =>
     set((s) => ({ details: { ...s.details, ...patch } })),
@@ -59,4 +64,5 @@ export const usePosterStore = create<PosterState>((set) => ({
     set({ logoCount: Math.max(0, Math.min(6, Math.round(n))) }),
   setIncludeQr: (includeQr) => set({ includeQr }),
   setIncludePhotoSpace: (includePhotoSpace) => set({ includePhotoSpace }),
+  setTargetChat: (targetChat) => set({ targetChat }),
 }));
