@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Poster Prompter
 
-## Getting Started
+Local web app that turns event details into a polished poster prompt for **Gemini**. No API keys, no image generation server-side — you fill in the form, copy the prompt, paste it into your Gemini chat, and let the model render the poster where your style is already calibrated.
 
-First, run the development server:
+## Quick start
 
-```bash
+This repo ships with a portable Node 24 LTS in `tools/node/`. From any shell:
+
+```powershell
+$env:Path = "$PWD\tools\node;$env:Path"
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or use Node from PATH if installed. Open <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Workflow
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Fill in Title, Date, Time, Venue (Price + T&C optional).
+2. Pick a Style preset, or write a custom style fragment.
+3. Pick a canvas size (A4 / A3 / A5 + portrait/landscape, roll-up, X-stand) — the dimensions go into the prompt.
+4. Adjust how many logo slots + whether a QR square should be reserved.
+5. Click **Copy prompt**. Open Gemini, paste, attach any style reference images alongside.
 
-## Learn More
+The right pane updates live. There is no Generate button — the prompt is the product.
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+├── page.tsx                       two-pane: form on left, prompt on right
+└── layout.tsx                     root layout + Inter font
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+components/
+├── ControlPanel/ControlPanel.tsx  event details + style + size form
+└── PromptOutput/PromptOutput.tsx  live prompt textarea + copy + Gemini link
 
-## Deploy on Vercel
+lib/
+├── ai/
+│   ├── promptBuilder.ts           details + style + size → prompt string
+│   └── types.ts                   StylePreset, PromptInput, STYLE_PRESETS
+├── canvas/sizes.ts                A4/A3/A5/signage @ 300 DPI + aspect bucketing
+├── state/posterStore.ts           zustand store
+└── utils.ts                       cn() classname helper
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Build commands
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```powershell
+npm run dev       # http://localhost:3000
+npm run build     # production build (verifies types)
+npm run start     # run production build
+npm run lint
+```
