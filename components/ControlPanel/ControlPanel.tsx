@@ -57,6 +57,14 @@ export function ControlPanel() {
             placeholder="Marina Bay Convention Hall"
           />
         </Field>
+        <Field label="Other details to include (optional)">
+          <textarea
+            value={details.highlights}
+            onChange={(e) => setDetails({ highlights: e.target.value })}
+            className={cn(inputCls, "h-28 resize-y leading-snug")}
+            placeholder={"One per line — anything the poster should mention.\n\nWater lantern festival:\nLantern release at 8pm\n200 lanterns provided\nLive drum performance\nOpen to all ages\n\nConference:\nKeynote: Dr Tan\nLunch + coffee\n3 workshop tracks"}
+          />
+        </Field>
         <Field label="Ticket Price (optional)">
           <input
             value={details.price}

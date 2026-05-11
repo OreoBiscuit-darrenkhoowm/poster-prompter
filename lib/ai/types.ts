@@ -3,6 +3,7 @@ export type EventDetailsPayload = {
   date?: string;
   time?: string;
   venue?: string;
+  highlights?: string;
   price?: string;
   tnc?: string;
 };

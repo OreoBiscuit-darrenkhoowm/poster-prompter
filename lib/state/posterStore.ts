@@ -8,6 +8,7 @@ export type EventDetails = {
   date: string;
   venue: string;
   time: string;
+  highlights: string;
   price: string;
   tnc: string;
 };
@@ -35,6 +36,7 @@ const DEFAULT_DETAILS: EventDetails = {
   date: "",
   venue: "",
   time: "",
+  highlights: "",
   price: "",
   tnc: "",
 };

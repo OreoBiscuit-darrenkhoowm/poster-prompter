@@ -19,6 +19,11 @@ export function buildPrompt(req: PromptInput): string {
   if (d.price?.trim()) detailLines.push(`Ticket Price: ${formatPrice(d.price)}`);
   if (d.tnc?.trim()) detailLines.push(`Fine print (T&C): ${d.tnc.trim()}`);
 
+  const highlightLines = (d.highlights ?? "")
+    .split(/\r?\n+/)
+    .map((l) => l.trim().replace(/^[-•*]\s*/, ""))
+    .filter(Boolean);
+
   const reservations: string[] = [];
   if (req.includeQr) {
     reservations.push(
@@ -45,6 +50,9 @@ export function buildPrompt(req: PromptInput): string {
     "The poster must fill the entire canvas edge to edge (full-bleed). Do NOT leave any white margins, white borders, or stark white/blank panels that break the composition. Reserved areas for QR, logos, or a photo should integrate cleanly into the design — the exact treatment (continuous artwork, tonal band, subtle pattern, footer band, etc.) is up to you, as long as it doesn't read as an empty white void.",
     "Render all the following copy directly inside the poster. You decide the placement, sizing, and typographic hierarchy that best suits the composition:",
     detailLines.map((l) => `  • ${l}`).join("\n"),
+    highlightLines.length > 0
+      ? `Render these additional details inside the poster, weighted by importance — choose typography and placement that fits the composition. They are content, not fine print:\n${highlightLines.map((l) => `  • ${l}`).join("\n")}`
+      : "",
     "Spell every visible word correctly. If a text element would render below roughly 3% of the canvas height, OMIT it rather than rendering it illegibly. Prefer fewer, larger, well-rendered text elements over many small ones. Do not invent organisation names, sponsor names, or fine print that wasn't provided.",
     reservations.length > 0
       ? `Reserve clean blank space for assets the designer will add later:\n${reservations.map((r) => `  • ${r}`).join("\n")}`
