@@ -65,8 +65,8 @@ export function PromptOutput() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3 p-6">
-      <div className="flex items-center justify-between gap-3">
+    <div className="flex h-full flex-col gap-3 p-4 md:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-zinc-100">
             Generated prompt

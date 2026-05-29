@@ -23,7 +23,7 @@ export function ControlPanel() {
   } = usePosterStore();
 
   return (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto p-5 text-sm text-zinc-200">
+    <div className="flex flex-col gap-6 p-5 text-sm text-zinc-200 md:h-full md:overflow-y-auto">
       <Section title="Event details">
         <Field label="Title">
           <input
