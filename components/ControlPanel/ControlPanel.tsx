@@ -3,6 +3,7 @@
 import { usePosterStore } from "@/lib/state/posterStore";
 import { SIZE_PRESETS } from "@/lib/canvas/sizes";
 import { cn } from "@/lib/utils";
+import type { LogoAreaStyle } from "@/lib/ai/types";
 
 export function ControlPanel() {
   const {
@@ -16,10 +17,14 @@ export function ControlPanel() {
     setOrientation,
     logoCount,
     setLogoCount,
+    logoAreaStyle,
+    setLogoAreaStyle,
     includeQr,
     setIncludeQr,
     includePhotoSpace,
     setIncludePhotoSpace,
+    photoSpaceBorder,
+    setPhotoSpaceBorder,
   } = usePosterStore();
 
   return (
@@ -57,14 +62,19 @@ export function ControlPanel() {
             placeholder="Marina Bay Convention Hall"
           />
         </Field>
-        <Field label="Other details to include (optional)">
+        <Field label="Other details & imagery (optional)">
           <textarea
             value={details.highlights}
             onChange={(e) => setDetails({ highlights: e.target.value })}
             className={cn(inputCls, "h-28 resize-y leading-snug")}
-            placeholder={"One per line — anything the poster should mention.\n\nWater lantern festival:\nLantern release at 8pm\n200 lanterns provided\nLive drum performance\nOpen to all ages\n\nConference:\nKeynote: Dr Tan\nLunch + coffee\n3 workshop tracks"}
+            aria-describedby="creative-brief-help"
+            placeholder={"Share facts, context, or images you want included.\n\nLanterns will be released at 8pm; 200 provided.\nShow glowing lanterns floating on the water.\nThis is a relaxed event for families.\nInclude the exact words: Open to all ages."}
           />
         </Field>
+        <p id="creative-brief-help" className="-mt-1 text-xs text-zinc-400">
+            The AI decides what works best as text, imagery, or both. Notes can
+            be reworded; specify when wording must be kept exactly.
+        </p>
         <Field label="Ticket Price (optional)">
           <input
             value={details.price}
@@ -128,6 +138,27 @@ export function ControlPanel() {
           onChange={(e) => setLogoCount(Number(e.target.value))}
           className="w-full accent-fuchsia-500"
         />
+        {logoCount > 0 && (
+          <div className="flex flex-col gap-1">
+            <Field label="Logo area background">
+              <select
+                value={logoAreaStyle}
+                onChange={(e) => setLogoAreaStyle(e.target.value as LogoAreaStyle)}
+                className={inputCls}
+                aria-describedby="logo-area-help"
+              >
+                <option value="auto">Match poster (AI decides)</option>
+                <option value="light">Lighter colour</option>
+                <option value="dark">Darker colour</option>
+                <option value="white">White</option>
+              </select>
+            </Field>
+            <p id="logo-area-help" className="text-xs text-zinc-400">
+              Lighter and darker colours are chosen from the poster’s palette.
+              Choose lighter or white for dark logos, darker for light logos.
+            </p>
+          </div>
+        )}
         <label className="mt-2 flex items-center gap-2 text-xs text-zinc-300">
           <input
             type="checkbox"
@@ -146,11 +177,27 @@ export function ControlPanel() {
           />
           Reserve a blank photo space (e.g. GOH headshot)
         </label>
+        {includePhotoSpace && (
+          <Field label="GOH photo space border">
+            <select
+              value={photoSpaceBorder ? "with-border" : "without-border"}
+              onChange={(e) =>
+                setPhotoSpaceBorder(e.target.value === "with-border")
+              }
+              className={inputCls}
+            >
+              <option value="without-border">Without border</option>
+              <option value="with-border">With border</option>
+            </select>
+          </Field>
+        )}
         <p className="mt-1 text-[10px] text-zinc-500">
           The prompt will ask the AI to leave clean space for {logoCount} logo
           {logoCount === 1 ? "" : "s"}
           {includeQr ? ", a QR placeholder" : ""}
-          {includePhotoSpace ? ", and a blank photo rectangle" : ""}. Add them
+          {includePhotoSpace
+            ? `, and a GOH photo space ${photoSpaceBorder ? "with" : "without"} a border`
+            : ""}. Add them
           yourself in your design tool after Gemini exports the image.
         </p>
       </Section>

@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { Orientation, SIZE_PRESETS, SizePreset } from "@/lib/canvas/sizes";
+import type { LogoAreaStyle } from "@/lib/ai/types";
 
 export type EventDetails = {
   title: string;
@@ -21,8 +22,10 @@ type PosterState = {
   sizePreset: SizePreset;
   orientation: Orientation;
   logoCount: number;
+  logoAreaStyle: LogoAreaStyle;
   includeQr: boolean;
   includePhotoSpace: boolean;
+  photoSpaceBorder: boolean;
   targetChat: TargetChat;
 
   setDetails: (patch: Partial<EventDetails>) => void;
@@ -30,8 +33,10 @@ type PosterState = {
   setSizePreset: (s: SizePreset) => void;
   setOrientation: (o: Orientation) => void;
   setLogoCount: (n: number) => void;
+  setLogoAreaStyle: (style: LogoAreaStyle) => void;
   setIncludeQr: (b: boolean) => void;
   setIncludePhotoSpace: (b: boolean) => void;
+  setPhotoSpaceBorder: (b: boolean) => void;
   setTargetChat: (t: TargetChat) => void;
 };
 
@@ -51,8 +56,10 @@ export const usePosterStore = create<PosterState>((set) => ({
   sizePreset: SIZE_PRESETS[0],
   orientation: "portrait",
   logoCount: 2,
+  logoAreaStyle: "auto",
   includeQr: true,
   includePhotoSpace: false,
+  photoSpaceBorder: false,
   targetChat: "gemini",
 
   setDetails: (patch) =>
@@ -63,6 +70,8 @@ export const usePosterStore = create<PosterState>((set) => ({
   setLogoCount: (n) =>
     set({ logoCount: Math.max(0, Math.min(6, Math.round(n))) }),
   setIncludeQr: (includeQr) => set({ includeQr }),
+  setLogoAreaStyle: (logoAreaStyle) => set({ logoAreaStyle }),
   setIncludePhotoSpace: (includePhotoSpace) => set({ includePhotoSpace }),
+  setPhotoSpaceBorder: (photoSpaceBorder) => set({ photoSpaceBorder }),
   setTargetChat: (targetChat) => set({ targetChat }),
 }));

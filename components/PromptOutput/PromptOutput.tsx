@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { usePosterStore } from "@/lib/state/posterStore";
 import { buildPrompt } from "@/lib/ai/promptBuilder";
-import { aspectRatioBucket, getDimensions } from "@/lib/canvas/sizes";
 import { cn } from "@/lib/utils";
 
 const CHAT_TARGETS = {
@@ -19,15 +18,16 @@ export function PromptOutput() {
     sizePreset,
     orientation,
     logoCount,
+    logoAreaStyle,
     includeQr,
     includePhotoSpace,
+    photoSpaceBorder,
     targetChat,
     setTargetChat,
   } = usePosterStore();
   const target = CHAT_TARGETS[targetChat];
 
   const prompt = useMemo(() => {
-    const dim = getDimensions(sizePreset, orientation);
     const widthMm =
       orientation === "portrait" ? sizePreset.widthMm : sizePreset.heightMm;
     const heightMm =
@@ -37,10 +37,13 @@ export function PromptOutput() {
       stylePrompt,
       widthMm,
       heightMm,
-      aspectRatio: aspectRatioBucket(dim.width, dim.height),
+      sizeName: sizePreset.label,
+      orientation,
       logoSlots: logoCount,
+      logoAreaStyle,
       includeQr,
       includePhotoSpace,
+      photoSpaceBorder,
     });
   }, [
     details,
@@ -48,8 +51,10 @@ export function PromptOutput() {
     sizePreset,
     orientation,
     logoCount,
+    logoAreaStyle,
     includeQr,
     includePhotoSpace,
+    photoSpaceBorder,
   ]);
 
   const [copied, setCopied] = useState(false);
