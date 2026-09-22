@@ -1,6 +1,29 @@
 import { PromptInput } from "./types";
 import { DPI, mmToPx } from "../canvas/sizes";
 
+function formatEventDate(raw: string): string {
+  const value = raw.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  // Keep the chosen calendar date independent of the viewer's time zone.
+  const date = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatEventTime(raw: string): string {
+  const value = raw.trim();
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
+  if (!match) return value;
+  const hour = Number(match[1]);
+  return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? "PM" : "AM"}`;
+}
+
 function formatPrice(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
@@ -14,8 +37,8 @@ export function buildPrompt(req: PromptInput): string {
 
   const d = req.details;
   const detailLines: string[] = [`Title: "${d.title || "(your title)"}"`];
-  if (d.date?.trim()) detailLines.push(`Date: ${d.date.trim()}`);
-  if (d.time?.trim()) detailLines.push(`Time: ${d.time.trim()}`);
+  if (d.date?.trim()) detailLines.push(`Date: ${formatEventDate(d.date)}`);
+  if (d.time?.trim()) detailLines.push(`Time: ${formatEventTime(d.time)}`);
   if (d.venue?.trim()) detailLines.push(`Venue: ${d.venue.trim()}`);
   if (d.price?.trim()) detailLines.push(`Ticket Price: ${formatPrice(d.price)}`);
   if (d.tnc?.trim()) detailLines.push(`Fine print (T&C): ${d.tnc.trim()}`);

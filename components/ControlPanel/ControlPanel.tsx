@@ -40,18 +40,18 @@ export function ControlPanel() {
         </Field>
         <Field label="Date">
           <input
+            type="date"
             value={details.date}
             onChange={(e) => setDetails({ date: e.target.value })}
-            className={inputCls}
-            placeholder="Saturday, 12 July 2026"
+            className={cn(inputCls, "[color-scheme:dark]")}
           />
         </Field>
         <Field label="Time">
           <input
+            type="time"
             value={details.time}
             onChange={(e) => setDetails({ time: e.target.value })}
-            className={inputCls}
-            placeholder="7:00 PM"
+            className={cn(inputCls, "[color-scheme:dark]")}
           />
         </Field>
         <Field label="Venue">
