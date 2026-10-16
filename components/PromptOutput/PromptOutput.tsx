@@ -13,7 +13,9 @@ const CHAT_TARGETS = {
 
 export function PromptOutput() {
   const {
-    details,
+    events,
+    eventCount,
+    posterHeadline,
     stylePrompt,
     sizePreset,
     orientation,
@@ -33,7 +35,8 @@ export function PromptOutput() {
     const heightMm =
       orientation === "portrait" ? sizePreset.heightMm : sizePreset.widthMm;
     return buildPrompt({
-      details,
+      events: events.slice(0, eventCount),
+      posterHeadline: eventCount > 1 ? posterHeadline : "",
       stylePrompt,
       widthMm,
       heightMm,
@@ -46,7 +49,9 @@ export function PromptOutput() {
       photoSpaceBorder,
     });
   }, [
-    details,
+    events,
+    eventCount,
+    posterHeadline,
     stylePrompt,
     sizePreset,
     orientation,

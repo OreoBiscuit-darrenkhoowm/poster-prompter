@@ -7,8 +7,10 @@ import type { LogoAreaStyle } from "@/lib/ai/types";
 
 export function ControlPanel() {
   const {
-    details,
-    setDetails,
+    eventCount,
+    setEventCount,
+    posterHeadline,
+    setPosterHeadline,
     stylePrompt,
     setStylePrompt,
     sizePreset,
@@ -30,67 +32,39 @@ export function ControlPanel() {
   return (
     <div className="flex flex-col gap-6 p-5 text-sm text-zinc-200 md:h-full md:overflow-y-auto">
       <Section title="Event details">
-        <Field label="Title">
-          <input
-            value={details.title}
-            onChange={(e) => setDetails({ title: e.target.value })}
-            className={inputCls}
-            placeholder="Saturday Jazz Night"
-          />
-        </Field>
-        <Field label="Date">
-          <input
-            type="date"
-            value={details.date}
-            onChange={(e) => setDetails({ date: e.target.value })}
-            className={cn(inputCls, "[color-scheme:dark]")}
-          />
-        </Field>
-        <Field label="Time">
-          <input
-            type="time"
-            value={details.time}
-            onChange={(e) => setDetails({ time: e.target.value })}
-            className={cn(inputCls, "[color-scheme:dark]")}
-          />
-        </Field>
-        <Field label="Venue">
-          <input
-            value={details.venue}
-            onChange={(e) => setDetails({ venue: e.target.value })}
-            className={inputCls}
-            placeholder="Marina Bay Convention Hall"
-          />
-        </Field>
-        <Field label="Other details & imagery (optional)">
-          <textarea
-            value={details.highlights}
-            onChange={(e) => setDetails({ highlights: e.target.value })}
-            className={cn(inputCls, "h-28 resize-y leading-snug")}
-            aria-describedby="creative-brief-help"
-            placeholder={"Share facts, context, or images you want included.\n\nLanterns will be released at 8pm; 200 provided.\nShow glowing lanterns floating on the water.\nThis is a relaxed event for families.\nInclude the exact words: Open to all ages."}
-          />
-        </Field>
-        <p id="creative-brief-help" className="-mt-1 text-xs text-zinc-400">
-            The AI decides what works best as text, imagery, or both. Notes can
-            be reworded; specify when wording must be kept exactly.
-        </p>
-        <Field label="Ticket Price (optional)">
-          <input
-            value={details.price}
-            onChange={(e) => setDetails({ price: e.target.value })}
-            className={inputCls}
-            placeholder="e.g. 8 or 8/pax — leave blank if free"
-          />
-        </Field>
-        <Field label="T&C (optional)">
-          <textarea
-            value={details.tnc}
-            onChange={(e) => setDetails({ tnc: e.target.value })}
-            className={cn(inputCls, "h-16 resize-y leading-snug")}
-            placeholder="Strictly no outside food. Registration required."
-          />
-        </Field>
+        <SegmentedControl<"1" | "2">
+          value={String(eventCount) as "1" | "2"}
+          onChange={(v) => setEventCount(v === "2" ? 2 : 1)}
+          options={[
+            { value: "1", label: "1 event" },
+            { value: "2", label: "2 events" },
+          ]}
+        />
+        {eventCount > 1 && (
+          <>
+            <Field label="Poster headline (optional)">
+              <input
+                value={posterHeadline}
+                onChange={(e) => setPosterHeadline(e.target.value)}
+                className={inputCls}
+                aria-describedby="poster-headline-help"
+                placeholder="Weekend Highlights"
+              />
+            </Field>
+            <p id="poster-headline-help" className="-mt-1 text-xs text-zinc-400">
+              An overall heading shown above both events. Leave blank to let
+              the event titles lead.
+            </p>
+          </>
+        )}
+        {eventCount === 1 ? (
+          <EventFields index={0} />
+        ) : (
+          <>
+            <EventFields index={0} heading="Event 1" />
+            <EventFields index={1} heading="Event 2" />
+          </>
+        )}
       </Section>
 
       <Section title="Style notes (optional)">
@@ -201,6 +175,91 @@ export function ControlPanel() {
           yourself in your design tool after Gemini exports the image.
         </p>
       </Section>
+    </div>
+  );
+}
+
+function EventFields({
+  index,
+  heading,
+}: {
+  index: 0 | 1;
+  heading?: string;
+}) {
+  const details = usePosterStore((s) => s.events[index]);
+  const setEventDetails = usePosterStore((s) => s.setEventDetails);
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2",
+        heading && "mt-2 rounded-md border border-zinc-800 p-3",
+      )}
+    >
+      {heading && (
+        <h4 className="text-xs font-semibold text-fuchsia-400">{heading}</h4>
+      )}
+      <Field label="Title">
+        <input
+          value={details.title}
+          onChange={(e) => setEventDetails(index, { title: e.target.value })}
+          className={inputCls}
+          placeholder="Saturday Jazz Night"
+        />
+      </Field>
+      <Field label="Date">
+        <input
+          type="date"
+          value={details.date}
+          onChange={(e) => setEventDetails(index, { date: e.target.value })}
+          className={cn(inputCls, "[color-scheme:dark]")}
+        />
+      </Field>
+      <Field label="Time">
+        <input
+          type="time"
+          value={details.time}
+          onChange={(e) => setEventDetails(index, { time: e.target.value })}
+          className={cn(inputCls, "[color-scheme:dark]")}
+        />
+      </Field>
+      <Field label="Venue">
+        <input
+          value={details.venue}
+          onChange={(e) => setEventDetails(index, { venue: e.target.value })}
+          className={inputCls}
+          placeholder="Marina Bay Convention Hall"
+        />
+      </Field>
+      <Field label="Other details & imagery (optional)">
+        <textarea
+          value={details.highlights}
+          onChange={(e) => setEventDetails(index, { highlights: e.target.value })}
+          className={cn(inputCls, "h-28 resize-y leading-snug")}
+          aria-describedby={`creative-brief-help-${index}`}
+          placeholder={"Share facts, context, or images you want included.\n\nLanterns will be released at 8pm; 200 provided.\nShow glowing lanterns floating on the water.\nThis is a relaxed event for families.\nInclude the exact words: Open to all ages."}
+        />
+      </Field>
+      <p id={`creative-brief-help-${index}`} className="-mt-1 text-xs text-zinc-400">
+          The AI decides what works best as text, imagery, or both. Notes can
+          be reworded; specify when wording must be kept exactly.
+      </p>
+      <Field label="Ticket Price (optional)">
+        <input
+          value={details.price}
+          onChange={(e) => setEventDetails(index, { price: e.target.value })}
+          className={inputCls}
+          placeholder="e.g. 8 or 8/pax — leave blank if free"
+        />
+      </Field>
+      <Field label="T&C (optional)">
+        <textarea
+          value={details.tnc}
+          onChange={(e) => setEventDetails(index, { tnc: e.target.value })}
+          className={cn(inputCls, "h-16 resize-y leading-snug")}
+          placeholder="Strictly no outside food. Registration required."
+        />
+      </Field>
     </div>
   );
 }

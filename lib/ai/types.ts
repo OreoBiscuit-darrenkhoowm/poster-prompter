@@ -13,7 +13,10 @@ export type EventDetailsPayload = {
 };
 
 export type PromptInput = {
-  details: EventDetailsPayload;
+  /** One entry per event on the poster (1 or 2). */
+  events: EventDetailsPayload[];
+  /** Optional overall heading used when the poster promotes multiple events. */
+  posterHeadline?: string;
   stylePrompt: string;
   sizeName: string;
   orientation: Orientation;

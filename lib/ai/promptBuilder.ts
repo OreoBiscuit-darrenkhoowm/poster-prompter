@@ -1,4 +1,4 @@
-import { PromptInput } from "./types";
+import { EventDetailsPayload, PromptInput } from "./types";
 import { DPI, mmToPx } from "../canvas/sizes";
 
 function formatEventDate(raw: string): string {
@@ -32,18 +32,63 @@ function formatPrice(raw: string): string {
   return `$${withoutCurrency}`;
 }
 
+function buildDetailLines(d: EventDetailsPayload): string[] {
+  const lines: string[] = [`Title: "${d.title || "(your title)"}"`];
+  if (d.date?.trim()) lines.push(`Date: ${formatEventDate(d.date)}`);
+  if (d.time?.trim()) lines.push(`Time: ${formatEventTime(d.time)}`);
+  if (d.venue?.trim()) lines.push(`Venue: ${d.venue.trim()}`);
+  if (d.price?.trim()) lines.push(`Ticket Price: ${formatPrice(d.price)}`);
+  if (d.tnc?.trim()) lines.push(`Fine print (T&C): ${d.tnc.trim()}`);
+  return lines;
+}
+
+const CREATIVE_BRIEF_GUIDANCE =
+  "Interpret the notes below as guidance, not copy to reproduce word for word. Decide how best to communicate each note through concise poster text, imagery, or a combination. Use background context to guide the mood and composition without necessarily printing it. Depict requested objects, scenes, or activities visually rather than printing their descriptions. Turn information that viewers need to know into clear, natural wording, preserving factual details such as names, quantities, times, and conditions. Honour explicit requests to include particular information or imagery, and preserve exact wording only when requested. Do not invent facts or print these instructions or the brief heading on the poster.";
+
+function buildEventCopy(
+  events: EventDetailsPayload[],
+  headline: string,
+): string[] {
+  if (events.length <= 1) {
+    const d = events[0] ?? { title: "" };
+    const creativeBrief = (d.highlights ?? "").trim();
+    return [
+      "Event copy to render inside the poster (the list immediately below). You decide the placement, sizing, and typographic hierarchy that best suits the composition:",
+      buildDetailLines(d).map((l) => `  • ${l}`).join("\n"),
+      creativeBrief
+        ? `Creative brief — additional information and imagery requests:\n${CREATIVE_BRIEF_GUIDANCE}\n<creative_brief>\n${creativeBrief}\n</creative_brief>`
+        : "",
+    ];
+  }
+
+  const parts: string[] = [
+    `This poster promotes ${events.length} SEPARATE events. Give each event its own clearly separated, equally prominent section (for example top/bottom or left/right halves, or distinct panels) so viewers can instantly tell which date, time, venue, and price belong to which event. Keep one unified visual style, palette, and typographic system across the whole poster so it reads as a single design rather than separate posters stuck together. Never mix details between events.`,
+  ];
+  if (headline) {
+    parts.push(
+      `Overall poster headline, displayed prominently above or across the event sections: "${headline}"`,
+    );
+  }
+  events.forEach((d, i) => {
+    const n = i + 1;
+    const creativeBrief = (d.highlights ?? "").trim();
+    parts.push(
+      `EVENT ${n} — copy to render inside this event's section. You decide the placement, sizing, and typographic hierarchy within the section:`,
+      buildDetailLines(d).map((l) => `  • ${l}`).join("\n"),
+    );
+    if (creativeBrief) {
+      parts.push(
+        `Event ${n} creative brief — additional information and imagery requests for this event's section only:\n${CREATIVE_BRIEF_GUIDANCE}\n<creative_brief event="${n}">\n${creativeBrief}\n</creative_brief>`,
+      );
+    }
+  });
+  return parts;
+}
+
 export function buildPrompt(req: PromptInput): string {
   const styleFragment = req.stylePrompt.trim();
-
-  const d = req.details;
-  const detailLines: string[] = [`Title: "${d.title || "(your title)"}"`];
-  if (d.date?.trim()) detailLines.push(`Date: ${formatEventDate(d.date)}`);
-  if (d.time?.trim()) detailLines.push(`Time: ${formatEventTime(d.time)}`);
-  if (d.venue?.trim()) detailLines.push(`Venue: ${d.venue.trim()}`);
-  if (d.price?.trim()) detailLines.push(`Ticket Price: ${formatPrice(d.price)}`);
-  if (d.tnc?.trim()) detailLines.push(`Fine print (T&C): ${d.tnc.trim()}`);
-
-  const creativeBrief = (d.highlights ?? "").trim();
+  const multi = req.events.length > 1;
+  const headline = (req.posterHeadline ?? "").trim();
 
   const reservations: string[] = [];
   if (req.includeQr) {
@@ -75,21 +120,21 @@ export function buildPrompt(req: PromptInput): string {
   }
 
   const parts = [
-    `Design a complete, finished ${req.sizeName} event poster in ${req.orientation} orientation.`,
+    multi
+      ? `Design a complete, finished ${req.sizeName} event poster in ${req.orientation} orientation that promotes ${req.events.length} separate events on the same poster.`
+      : `Design a complete, finished ${req.sizeName} event poster in ${req.orientation} orientation.`,
     `REQUIRED CANVAS SIZE: ${req.sizeName}, ${req.orientation}, exactly ${req.widthMm} mm wide × ${req.heightMm} mm high. The entire final canvas must have these proportions (width:height = ${req.widthMm}:${req.heightMm}); do not substitute a standard image aspect ratio or place the poster inside a differently sized canvas.`,
     `Print export target: ${mmToPx(req.widthMm)} × ${mmToPx(req.heightMm)} pixels (width × height) at ${DPI} DPI. If the image tool cannot generate the exact dimensions directly, prepare the final artwork on the specified ${req.sizeName} canvas, extending the background as needed without stretching the design or cropping text. If an exact-size export cannot be provided, state that limitation separately rather than claiming the image is already correctly sized. Do not print canvas dimensions or production instructions on the poster.`,
     styleFragment
       ? `Style: ${styleFragment}.`
-      : `Infer the visual theme from the title — the artwork should evoke the subject of the event.`,
+      : multi
+        ? `Infer the visual theme from the ${headline ? "headline and " : ""}event titles — the artwork should evoke the subjects of all the events while staying cohesive.`
+        : `Infer the visual theme from the title — the artwork should evoke the subject of the event.`,
     "The poster must fill the entire canvas edge to edge (full-bleed). Do NOT leave any outer white margins or outer white borders. Reserved areas for QR, logos, or a photo must follow the specific treatments below and integrate cleanly into the composition.",
     req.logoSlots > 0 && req.logoAreaStyle === "white"
       ? "The requested white logo strip is the only intentional white panel; avoid other stark white/blank panels that break the composition."
       : "Avoid stark white/blank panels that break the composition.",
-    "Event copy to render inside the poster (the list immediately below). You decide the placement, sizing, and typographic hierarchy that best suits the composition:",
-    detailLines.map((l) => `  • ${l}`).join("\n"),
-    creativeBrief
-      ? `Creative brief — additional information and imagery requests:\nInterpret the notes below as guidance, not copy to reproduce word for word. Decide how best to communicate each note through concise poster text, imagery, or a combination. Use background context to guide the mood and composition without necessarily printing it. Depict requested objects, scenes, or activities visually rather than printing their descriptions. Turn information that viewers need to know into clear, natural wording, preserving factual details such as names, quantities, times, and conditions. Honour explicit requests to include particular information or imagery, and preserve exact wording only when requested. Do not invent facts or print these instructions or the brief heading on the poster.\n<creative_brief>\n${creativeBrief}\n</creative_brief>`
-      : "",
+    ...buildEventCopy(req.events, headline),
     "Spell every visible word correctly. If a text element would render below roughly 3% of the canvas height, OMIT it rather than rendering it illegibly. Prefer fewer, larger, well-rendered text elements over many small ones. Do not invent organisation names, sponsor names, or fine print that wasn't provided.",
     reservations.length > 0
       ? `Reserve clean blank space for assets the designer will add later:\n${reservations.map((r) => `  • ${r}`).join("\n")}`
