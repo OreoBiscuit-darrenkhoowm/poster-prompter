@@ -16,8 +16,13 @@ export type EventDetails = {
 
 export type TargetChat = "gemini" | "chatgpt";
 
+export type EventCount = 1 | 2;
+
 type PosterState = {
-  details: EventDetails;
+  /** Always holds two slots so the second event's details survive toggling. */
+  events: [EventDetails, EventDetails];
+  eventCount: EventCount;
+  posterHeadline: string;
   stylePrompt: string;
   sizePreset: SizePreset;
   orientation: Orientation;
@@ -28,7 +33,9 @@ type PosterState = {
   photoSpaceBorder: boolean;
   targetChat: TargetChat;
 
-  setDetails: (patch: Partial<EventDetails>) => void;
+  setEventDetails: (index: 0 | 1, patch: Partial<EventDetails>) => void;
+  setEventCount: (n: EventCount) => void;
+  setPosterHeadline: (s: string) => void;
   setStylePrompt: (s: string) => void;
   setSizePreset: (s: SizePreset) => void;
   setOrientation: (o: Orientation) => void;
@@ -51,7 +58,9 @@ const DEFAULT_DETAILS: EventDetails = {
 };
 
 export const usePosterStore = create<PosterState>((set) => ({
-  details: DEFAULT_DETAILS,
+  events: [DEFAULT_DETAILS, DEFAULT_DETAILS],
+  eventCount: 1,
+  posterHeadline: "",
   stylePrompt: "",
   sizePreset: SIZE_PRESETS[0],
   orientation: "portrait",
@@ -62,8 +71,14 @@ export const usePosterStore = create<PosterState>((set) => ({
   photoSpaceBorder: false,
   targetChat: "gemini",
 
-  setDetails: (patch) =>
-    set((s) => ({ details: { ...s.details, ...patch } })),
+  setEventDetails: (index, patch) =>
+    set((s) => {
+      const events: [EventDetails, EventDetails] = [...s.events];
+      events[index] = { ...events[index], ...patch };
+      return { events };
+    }),
+  setEventCount: (eventCount) => set({ eventCount }),
+  setPosterHeadline: (posterHeadline) => set({ posterHeadline }),
   setStylePrompt: (stylePrompt) => set({ stylePrompt }),
   setSizePreset: (sizePreset) => set({ sizePreset }),
   setOrientation: (orientation) => set({ orientation }),
