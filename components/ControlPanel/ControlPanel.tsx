@@ -215,14 +215,24 @@ function EventFields({
           className={cn(inputCls, "[color-scheme:dark]")}
         />
       </Field>
-      <Field label="Time">
-        <input
-          type="time"
-          value={details.time}
-          onChange={(e) => setEventDetails(index, { time: e.target.value })}
-          className={cn(inputCls, "[color-scheme:dark]")}
-        />
-      </Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Start time">
+          <input
+            type="time"
+            value={details.time}
+            onChange={(e) => setEventDetails(index, { time: e.target.value })}
+            className={cn(inputCls, "[color-scheme:dark]")}
+          />
+        </Field>
+        <Field label="End time (optional)">
+          <input
+            type="time"
+            value={details.endTime}
+            onChange={(e) => setEventDetails(index, { endTime: e.target.value })}
+            className={cn(inputCls, "[color-scheme:dark]")}
+          />
+        </Field>
+      </div>
       <Field label="Venue">
         <input
           value={details.venue}

@@ -9,6 +9,7 @@ export type EventDetails = {
   date: string;
   venue: string;
   time: string;
+  endTime: string;
   highlights: string;
   price: string;
   tnc: string;
@@ -52,6 +53,7 @@ const DEFAULT_DETAILS: EventDetails = {
   date: "",
   venue: "",
   time: "",
+  endTime: "",
   highlights: "",
   price: "",
   tnc: "",
