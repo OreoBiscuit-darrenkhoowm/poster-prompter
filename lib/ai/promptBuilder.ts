@@ -35,7 +35,11 @@ function formatPrice(raw: string): string {
 function buildDetailLines(d: EventDetailsPayload): string[] {
   const lines: string[] = [`Title: "${d.title || "(your title)"}"`];
   if (d.date?.trim()) lines.push(`Date: ${formatEventDate(d.date)}`);
-  if (d.time?.trim()) lines.push(`Time: ${formatEventTime(d.time)}`);
+  const start = d.time?.trim() ? formatEventTime(d.time) : "";
+  const end = d.endTime?.trim() ? formatEventTime(d.endTime) : "";
+  if (start && end) lines.push(`Time: ${start} – ${end}`);
+  else if (start) lines.push(`Time: ${start}`);
+  else if (end) lines.push(`End time: ${end}`);
   if (d.venue?.trim()) lines.push(`Venue: ${d.venue.trim()}`);
   if (d.price?.trim()) lines.push(`Ticket Price: ${formatPrice(d.price)}`);
   if (d.tnc?.trim()) lines.push(`Fine print (T&C): ${d.tnc.trim()}`);
